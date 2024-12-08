@@ -10,15 +10,6 @@ echo "Updating system and installing required packages..."
 sudo apt update && sudo apt upgrade -y
 sudo apt install -y ${REQUIRED_PACKAGES[@]}
 
-# Prompt for connection string if not set in environment
-if [ -z "$AZURE_CONNECTION_STRING" ]; then
-  echo "Please enter your Azure Storage Connection String:"
-  read -s AZURE_CONNECTION_STRING
-  export AZURE_CONNECTION_STRING
-  echo "AZURE_CONNECTION_STRING='$AZURE_CONNECTION_STRING'" > .env
-  echo "Azure Connection String saved to .env file."
-fi
-
 # Set up Python virtual environment
 echo "Setting up Python virtual environment..."
 if [ ! -d "venv" ]; then
