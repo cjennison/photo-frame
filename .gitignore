@@ -1,0 +1,24 @@
+# Ignore Python virtual environments
+frameenv/
+
+# Ignore compiled Python files
+__pycache__/
+*.pyc
+*.pyo
+
+# Ignore logs and temporary files
+*.log
+*.tmp
+
+# Ignore OS-specific files
+.DS_Store
+Thumbs.db
+
+# Ignore builds and dependencies
+build/
+dist/
+
+pictures/
+videos/
+
+.env
