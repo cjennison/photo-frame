@@ -1,10 +1,8 @@
 #!/bin/bash
 
 # Variables
-AZCOPY_URL="https://aka.ms/downloadazcopy-v10-linux-arm64"
-AZCOPY_ARCHIVE="azcopy_linux_arm64.tar.gz"
-REQUIRED_PACKAGES=("git" "curl" "unzip" "python3" "python3-venv")
-REPO_URL="https://github.com/your-repo/photo_frame.git"
+
+REQUIRED_PACKAGES=("curl" "unzip" "python3" "python3-venv")
 MAIN_SCRIPT="main.py"
 
 # Update system and install required packages
@@ -12,30 +10,17 @@ echo "Updating system and installing required packages..."
 sudo apt update && sudo apt upgrade -y
 sudo apt install -y ${REQUIRED_PACKAGES[@]}
 
-# Check and install azcopy
-if ! command -v azcopy &> /dev/null; then
-  echo "AzCopy not found. Downloading and installing..."
-  wget $AZCOPY_URL -O $AZCOPY_ARCHIVE
-  tar -xvf $AZCOPY_ARCHIVE
-  sudo mv azcopy_linux_arm64/azcopy /usr/local/bin
-  rm -rf azcopy_linux_arm64 $AZCOPY_ARCHIVE
-  echo "AzCopy installed successfully."
-else
-  echo "AzCopy is already installed."
-fi
-
-# Clone the project repository
-echo "Cloning project repository..."
-if [ ! -d "photo_frame" ]; then
-  git clone $REPO_URL
-else
-  echo "Project repository already exists. Pulling latest changes..."
-  cd photo_frame && git pull && cd ..
+# Prompt for connection string if not set in environment
+if [ -z "$AZURE_CONNECTION_STRING" ]; then
+  echo "Please enter your Azure Storage Connection String:"
+  read -s AZURE_CONNECTION_STRING
+  export AZURE_CONNECTION_STRING
+  echo "AZURE_CONNECTION_STRING='$AZURE_CONNECTION_STRING'" > .env
+  echo "Azure Connection String saved to .env file."
 fi
 
 # Set up Python virtual environment
 echo "Setting up Python virtual environment..."
-cd photo_frame
 if [ ! -d "venv" ]; then
   python3 -m venv venv
   source venv/bin/activate
@@ -54,9 +39,6 @@ fi
 echo "Starting the application..."
 source venv/bin/activate
 python3 $MAIN_SCRIPT
-
-deactivate
-cd ..
 
 # Final steps
 echo "Setup and execution complete. Application is now running."

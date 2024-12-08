@@ -19,6 +19,7 @@ This application is a digital photo frame designed to run on Raspberry Pi. It do
 ### Prerequisites
 
 Ensure your Raspberry Pi has the following installed:
+
 - Python 3.x
 - Git
 - curl
@@ -30,6 +31,7 @@ Ensure your Raspberry Pi has the following installed:
 ### Step 1: Set Up SSH Access to the Raspberry Pi
 
 1. **Enable SSH on the Raspberry Pi**:
+
    - Run the following command on the Raspberry Pi to enable SSH:
      ```bash
      sudo raspi-config
@@ -37,6 +39,7 @@ Ensure your Raspberry Pi has the following installed:
    - Navigate to **Interface Options** > **SSH** and enable it.
 
 2. **Find the Raspberry Pi's IP Address**:
+
    - Run the following command to get the IP address:
      ```bash
      hostname -I
@@ -44,6 +47,7 @@ Ensure your Raspberry Pi has the following installed:
    - Note the IP address (e.g., `192.168.1.100`).
 
 3. **Access the Raspberry Pi via SSH from Your PC**:
+
    - Use an SSH client (e.g., Terminal on macOS/Linux or PuTTY on Windows) to connect:
      ```bash
      ssh pi@<your-pi-ip>
@@ -68,11 +72,13 @@ Ensure your Raspberry Pi has the following installed:
 ### Step 2: Clone and Run the Setup Script
 
 1. SSH into your Raspberry Pi:
+
    ```bash
    ssh pi@<your-pi-ip>
    ```
 
 2. Clone the repository:
+
    ```bash
    git clone https://github.com/your-repo/photo_frame.git
    cd photo_frame
@@ -80,7 +86,7 @@ Ensure your Raspberry Pi has the following installed:
 
 3. Run the setup script:
    ```bash
-   ./setup.sh
+   ./scripts/setup.sh
    ```
    - This script installs required dependencies, sets up a Python virtual environment, and starts the application.
 
@@ -89,6 +95,7 @@ Ensure your Raspberry Pi has the following installed:
 ### Step 3: Running the Application
 
 After running the setup script:
+
 - The application will start automatically.
 - To restart manually:
   ```bash
@@ -109,6 +116,7 @@ After running the setup script:
    ```
 
    Add the following content:
+
    ```ini
    [Unit]
    Description=Photo Frame Application
@@ -126,6 +134,7 @@ After running the setup script:
    ```
 
 2. Enable the service:
+
    ```bash
    sudo systemctl daemon-reload
    sudo systemctl enable photo_frame
@@ -144,6 +153,7 @@ After running the setup script:
 To update the application:
 
 1. Fetch the latest code:
+
    ```bash
    cd photo_frame
    git pull
@@ -159,6 +169,7 @@ To update the application:
 ## Notes
 
 - **Environment Variables**: Store sensitive information like Azure SAS tokens in a `.env` file. Example:
+
   ```
   SAS_TOKEN="?sv=2022-11-02&ss=bfqt&srt=co&sp=rw"
   ```
@@ -170,6 +181,7 @@ To update the application:
 ## Troubleshooting
 
 1. **Application Not Starting**:
+
    - Check logs:
      ```bash
      sudo journalctl -u photo_frame
@@ -182,4 +194,3 @@ To update the application:
 ---
 
 For further assistance, please reach out to the repository maintainer.
-
