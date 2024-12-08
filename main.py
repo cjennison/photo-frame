@@ -31,7 +31,7 @@ ICON_PATHS = {
   "skip": "icons/skip.svg"
 }
 
-FULL_SCREEN = True
+FULL_SCREEN = False
 
 # Configuration
 ENABLE_SLIDESHOW = True
