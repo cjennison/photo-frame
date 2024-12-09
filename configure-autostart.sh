@@ -1,15 +1,7 @@
 #!/bin/bash
 
 # Variables
-VERSION_FILE="version.txt"
-if [ -f $VERSION_FILE ]; then
-  LOCAL_VERSION=$(cat $VERSION_FILE | tr -d '\n')
-else
-  LOCAL_VERSION=""
-fi
-
-VERSION=$LOCAL_VERSION
-WORKING_DIR="/home/$(whoami)/Applications/photo-frame-$VERSION"
+WORKING_DIR="/home/$(whoami)/Applications/photo-frame"
 RUN_SCRIPT="$WORKING_DIR/run.sh"
 CRONTAB_BACKUP="/home/$(whoami)/crontab.bak"
 
@@ -40,7 +32,7 @@ for service in networking dbus; do
 done
 
 # Wait for the project directory to become available
-PROJECT_DIR="/home/pi/Applications/photo-frame-$VERSION"
+PROJECT_DIR="/home/pi/Applications/photo-frame"
 echo "Checking if project directory $PROJECT_DIR is available..."
 until is_directory_ready "$PROJECT_DIR"; do
   echo "Project directory $PROJECT_DIR is not available. Waiting..."
@@ -55,8 +47,8 @@ until is_directory_ready "/run/user/$(id -u)"; do
   sleep 5
 done
 
-echo "Running as: \$(whoami)" > /home/$(whoami)/debug_crontab.log
-env >> /home/$(whoami)/debug_crontab.log
+echo "Running as: \$(whoami)" > /home/$(whoami)/debug_photo_frame.log
+env >> /home/$(whoami)/debug_photo_frame.log
 
 # Set XDG_RUNTIME_DIR
 export XDG_RUNTIME_DIR=/run/user/1000

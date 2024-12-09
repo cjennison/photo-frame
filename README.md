@@ -142,15 +142,23 @@ After running the setup script:
    ```
 
 3. Check the status:
+
    ```bash
    sudo systemctl status photo_frame
+   ```
+
+4. (Optional) Use `configure-autostart.sh` to enable/disable autostart on boot.
+   > Sudo is required due to writing a service file
+   ```bash
+   chmod +x configure-autostart.sh # make executable by sudo
+   sudo ./configure-autostart.sh
    ```
 
 ---
 
 ## Updating the Application
 
-To update the application:
+To update the application via git:
 
 1. Fetch the latest code:
 
@@ -163,6 +171,38 @@ To update the application:
    ```bash
    sudo systemctl restart photo_frame
    ```
+
+To update the application via Release:
+
+1. Download the latest release from GitHub.
+2. Extract the contents to the `~/Applications/photo_frame` directory.
+   > Overwrite existing files if prompted.
+   > Directory structure should be:
+   >
+   > ```
+   > photo_frame/
+   > ├── classes
+   > ├── scripts
+   > ├── modules
+   > ├── icons
+   > ├── utils
+   > ├── configure-autostart.sh
+   > ├── main.py
+   > ├── requirements.txt
+   > ├── version.txt
+   > ├── ...
+   > ```
+3. Run the setup script:
+   ```bash
+   ./scripts/setup.sh
+   ```
+4. Restart the service:
+
+   ```bash
+   sudo systemctl restart photo_frame
+   ```
+
+   > A system restart may be required for changes to take effect.
 
 ---
 
