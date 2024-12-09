@@ -8,7 +8,7 @@ CRONTAB_BACKUP="/home/$(whoami)/crontab.bak"
 # Create run.sh file
 mkdir -p "$WORKING_DIR"
 echo "Creating run.sh in $WORKING_DIR..."
-cat > "$RUN_SCRIPT" <<EOL
+cat > "$RUN_SCRIPT" <<'EOL'
 #!/bin/bash
 # Function to check if a service is running
 is_service_active() {
@@ -32,7 +32,7 @@ for service in networking dbus; do
 done
 
 # Wait for the project directory to become available
-PROJECT_DIR="/home/pi/Applications/photo-frame"
+PROJECT_DIR="/home/$(whoami)/Applications/photo-frame"
 echo "Checking if project directory $PROJECT_DIR is available..."
 until is_directory_ready "$PROJECT_DIR"; do
   echo "Project directory $PROJECT_DIR is not available. Waiting..."
@@ -47,14 +47,14 @@ until is_directory_ready "/run/user/$(id -u)"; do
   sleep 5
 done
 
-echo "Running as: \$(whoami)" > /home/$(whoami)/debug_photo_frame.log
+echo "Running as: $(whoami)" > /home/$(whoami)/debug_photo_frame.log
 env >> /home/$(whoami)/debug_photo_frame.log
 
 # Set XDG_RUNTIME_DIR
 export XDG_RUNTIME_DIR=/run/user/1000
 
 # Navigate to the project directory
-cd $WORKING_DIR
+cd $PROJECT_DIR
 
 # Activate the virtual environment
 source venv/bin/activate
@@ -77,25 +77,3 @@ chmod +x "$RUN_SCRIPT"
 
 # Final output
 # echo "run.sh created in $WORKING_DIR and crontab configured."
-
-#### Service Option
-# Create a systemd service
-SERVICE_FILE="/etc/systemd/system/photo-frame.service"
-echo "Creating service file $SERVICE_FILE..."
-
-cat > "$SERVICE_FILE" <<EOL
-[Unit]
-Description=Photo Frame Application
-After=network.target
-
-[Service]
-ExecStart=$WORKING_DIR/run.sh
-WorkingDirectory=$WORKING_DIR
-Restart=always
-User=cjennison
-Environment=DISPLAY=:0
-Environment=XAUTHORITY=/home/$(whoami)/.Xauthority
-
-[Install]
-WantedBy=multi-user.target
-EOL

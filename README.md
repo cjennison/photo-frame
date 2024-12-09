@@ -80,8 +80,8 @@ Ensure your Raspberry Pi has the following installed:
 2. Clone the repository:
 
    ```bash
-   git clone https://github.com/your-repo/photo_frame.git
-   cd photo_frame
+   git clone https://github.com/your-repo/photo-frame.git
+   cd photo-frame
    ```
 
 3. Run the setup script:
@@ -99,7 +99,7 @@ After running the setup script:
 - The application will start automatically.
 - To restart manually:
   ```bash
-  cd photo_frame
+  cd photo-frame
   source venv/bin/activate
   python3 main.py
   deactivate
@@ -112,7 +112,7 @@ After running the setup script:
 1. Create a systemd service for the application:
 
    ```bash
-   sudo nano /etc/systemd/system/photo_frame.service
+   sudo nano /etc/systemd/system/photo-frame.service
    ```
 
    Add the following content:
@@ -123,8 +123,8 @@ After running the setup script:
    After=network.target
 
    [Service]
-   ExecStart=/home/pi/photo_frame/run.sh
-   WorkingDirectory=/home/pi/photo_frame
+   ExecStart=/home/pi/photo-frame/run.sh
+   WorkingDirectory=/home/pi/photo-frame
    Restart=always
    User=pi
    Environment=DISPLAY=:0
@@ -137,14 +137,14 @@ After running the setup script:
 
    ```bash
    sudo systemctl daemon-reload
-   sudo systemctl enable photo_frame
-   sudo systemctl start photo_frame
+   sudo systemctl enable photo-frame
+   sudo systemctl start photo-frame
    ```
 
 3. Check the status:
 
    ```bash
-   sudo systemctl status photo_frame
+   sudo systemctl status photo-frame
    ```
 
 4. (Optional) Use `configure-autostart.sh` to enable/disable autostart on boot.
@@ -163,24 +163,24 @@ To update the application via git:
 1. Fetch the latest code:
 
    ```bash
-   cd photo_frame
+   cd photo-frame
    git pull
    ```
 
 2. Restart the service:
    ```bash
-   sudo systemctl restart photo_frame
+   sudo systemctl restart photo-frame
    ```
 
 To update the application via Release:
 
 1. Download the latest release from GitHub.
-2. Extract the contents to the `~/Applications/photo_frame` directory.
+2. Extract the contents to the `~/Applications/photo-frame` directory.
    > Overwrite existing files if prompted.
    > Directory structure should be:
    >
    > ```
-   > photo_frame/
+   > photo-frame/
    > ├── classes
    > ├── scripts
    > ├── modules
@@ -199,7 +199,7 @@ To update the application via Release:
 4. Restart the service:
 
    ```bash
-   sudo systemctl restart photo_frame
+   sudo systemctl restart photo-frame
    ```
 
    > A system restart may be required for changes to take effect.
@@ -224,11 +224,11 @@ To update the application via Release:
 
    - Check logs:
      ```bash
-     sudo journalctl -u photo_frame
+     sudo journalctl -u photo-frame
      ```
    - Check end of logs:
      ```bash
-     sudo journalctl -u photo_frame -n 100
+     sudo journalctl -u photo-frame -n 100
      ```
 
 2. **Media Not Loading**:
