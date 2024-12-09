@@ -31,7 +31,7 @@ ICON_PATHS = {
   "skip": "icons/skip.svg"
 }
 
-FULL_SCREEN = False
+FULL_SCREEN = True
 
 # Configuration
 ENABLE_SLIDESHOW = True
@@ -143,12 +143,24 @@ def main():
   
   media_index = -1
   media_type = None
+  last_played_media = None
   
   def advance_media():
     nonlocal media_index
     nonlocal media_type
+    nonlocal last_played_media
     media_type = random.choice(["image", "video"])
-    media_index += 1
+    if media_type == "image":
+      media_index = random.randint(0, len(IMAGES) - 1)
+    elif media_type == "video":
+      media_index = random.randint(0, len(VIDEOS) - 1)
+      
+    if last_played_media and last_played_media == (media_type, media_index):
+      # If we've already played this media, skip it
+      advance_media()
+      return False
+    
+    last_played_media = (media_type, media_index)
     return True
   
   def handle_keypress(eventType, eventKey, event=None):

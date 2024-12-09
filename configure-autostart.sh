@@ -18,8 +18,38 @@ mkdir -p "$WORKING_DIR"
 echo "Creating run.sh in $WORKING_DIR..."
 cat > "$RUN_SCRIPT" <<EOL
 #!/bin/bash
-# Wait for the system to fully initialize
+# Function to check if a service is running
+is_service_active() {
+  systemctl is-active --quiet "$1"
+}
+
+# Function to check if a directory exists
+is_directory_ready() {
+  [ -d "$1" ]
+}
+
+# Wait for essential services (e.g., networking, graphical interface)
+echo "Checking if essential services are active..."
+for service in networking dbus; do
+  echo "Checking if $service service is active..."
+  until is_service_active "$service"; do
+    echo "$service service is not active. Waiting..."
+    sleep 5
+  done
+  echo "$service service is active."
+done
+
+# Wait for the project directory to become available
+PROJECT_DIR="/home/pi/Applications/photo-frame-0.1.2"
+echo "Checking if project directory $PROJECT_DIR is available..."
+until is_directory_ready "$PROJECT_DIR"; do
+  echo "Project directory $PROJECT_DIR is not available. Waiting..."
+  sleep 5
+done
+echo "Project directory $PROJECT_DIR is available."
+
 sleep 30
+
 echo "Running as: \$(whoami)" > /home/$(whoami)/debug_crontab.log
 env >> /home/$(whoami)/debug_crontab.log
 
