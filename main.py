@@ -127,6 +127,7 @@ def main():
   else:
     screen = pygame.display.set_mode(SCREEN_SIZES[SCREEN_SIZE])
   pygame.display.set_caption("Digital Photo Frame")
+  pygame.mouse.set_visible(False)
   clock = pygame.time.Clock()
   
   loaded_icons = {
