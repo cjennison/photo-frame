@@ -59,6 +59,9 @@ cd $PROJECT_DIR
 # Activate the virtual environment
 source venv/bin/activate
 
+# Check for updates
+source scripts/check-updates.sh
+
 # Force reinstall cairosvg
 # Note: This works. I don't know why. But it works.
 pip install cairosvg

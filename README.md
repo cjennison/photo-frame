@@ -150,9 +150,8 @@ After running the setup script:
 4. (Optional) Use `configure-autostart.sh` to enable/disable autostart on boot.
    > Sudo is required due to writing a service file
    ```bash
-   source scripts/configure-run.sh # creates run.sh in the project directory
-   chmod +x scripts/create-autostart.sh # make executable by sudo
-   sudo ./scripts/create-autostart.sh # creates the service file
+   chmod +x configure-autostart.sh # make executable by sudo
+   sudo ./configure-autostart.sh
    ```
 
 ---
