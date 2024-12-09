@@ -8,6 +8,7 @@ import cairosvg  # type: ignore
 from pygame.locals import * # type: ignore
 from modules.photo_display import display_photo
 from modules.video_display import play_video  
+from modules.draw_ui import draw_transparent_rect, draw_icon, draw_ui
 from classes.uibutton import UIButton
 from utils.loadsvgs import load_svg_as_surface
 from utils.loadfiles import load_files
@@ -62,58 +63,13 @@ buttons = [
   UIButton((24, SCREEN_SIZES[SCREEN_SIZE][1] - 72, 48, 48), "", toggle_slideshow),
   UIButton((80, SCREEN_SIZES[SCREEN_SIZE][1] - 72, 200, 48), "", toggle_transition),
 ]
-
-## Tap Ares
-def draw_transparent_rect(screen, rect, color, alpha):
-  # Create a new surface with the same dimensions as the rectangle
-  temp_surface = pygame.Surface((rect.width, rect.height), pygame.SRCALPHA)
-  # Fill the surface with the color and alpha
-  temp_surface.fill((*color, alpha))
-  # Blit this surface onto the screen at the rectangle's position
-  screen.blit(temp_surface, (rect.x, rect.y))
-
-## Icons
-def draw_icon(screen, icon_key, position):
-  icon = loaded_icons.get(icon_key)
-  if icon:
-    screen.blit(icon, position)
-
-# UI DRAW LOOP
-def draw_ui(screen, buttons):
-  global UI_VISIBLE, UI_LAST_VISIBLE, ENABLE_SLIDESHOW, ENABLE_TRANSITION
-  transition_text = "Transitions: On" if ENABLE_TRANSITION else "Transitions: Off"
-  
-  # Hide the UI after 5 seconds
-  if UI_LAST_VISIBLE and time.time() - UI_LAST_VISIBLE > 5:
-    UI_VISIBLE = False
-      
-  if not UI_VISIBLE:
-    return
-  font = pygame.font.Font(None, 36)
-
-  buttons[1].text = transition_text
-  
-  for button in buttons:
-    button.draw(screen, font)
-    
-  # Draw right side tap area
-  rect = pygame.Rect(
-    SCREEN_SIZES[SCREEN_SIZE][0] - SCREEN_SIZES[SCREEN_SIZE][0] * RIGHT_TAP_AREA, 
-    0, 
-    SCREEN_SIZES[SCREEN_SIZE][0] * RIGHT_TAP_AREA,
-    SCREEN_SIZES[SCREEN_SIZE][1])  # Rectangle dimensions
-  color = (0, 0, 0)  # Black
-  alpha = 128  # 50% transparency
-  draw_transparent_rect(screen, rect, color, alpha)
-  
-  # Icons
-  draw_icon(screen, "skip", (SCREEN_SIZES[SCREEN_SIZE][0] - SCREEN_SIZES[SCREEN_SIZE][0] * RIGHT_TAP_AREA + 36, SCREEN_SIZES[SCREEN_SIZE][1] / 2 - 24))
-
-  # Display Play or Pause depending
-  draw_icon(screen, "play" if ENABLE_SLIDESHOW else "pause", (24, SCREEN_SIZES[SCREEN_SIZE][1] - 72))
-
 def draw(screen):
-  draw_ui(screen, buttons)
+  draw_ui(screen, buttons, {
+    "UI_VISIBLE": UI_VISIBLE,
+    "UI_LAST_VISIBLE": UI_LAST_VISIBLE,
+    "ENABLE_SLIDESHOW": ENABLE_SLIDESHOW,
+    "ENABLE_TRANSITION": ENABLE_TRANSITION
+  }, SCREEN_SIZES[SCREEN_SIZE], RIGHT_TAP_AREA, loaded_icons)
   
 ## ---------------- MAIN ----------------
 def main():
