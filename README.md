@@ -123,7 +123,7 @@ After running the setup script:
    After=network.target
 
    [Service]
-   ExecStart=/home/pi/photo_frame/venv/bin/python3 /home/pi/photo_frame/main.py
+   ExecStart=/home/pi/photo_frame/run.sh
    WorkingDirectory=/home/pi/photo_frame
    Restart=always
    User=pi
@@ -185,6 +185,10 @@ To update the application:
    - Check logs:
      ```bash
      sudo journalctl -u photo_frame
+     ```
+   - Check end of logs:
+     ```bash
+     sudo journalctl -u photo_frame -n 100
      ```
 
 2. **Media Not Loading**:
