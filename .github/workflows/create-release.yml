@@ -1,0 +1,35 @@
+name: Create and Publish Release
+
+on:
+  push:
+    tags:
+      - 'v*' # Trigger workflow on version tags (e.g., v1.0.0)
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v3
+
+    - name: Prepare release archive
+      run: |
+        mkdir photo-frame
+        cp -r * photo-frame/
+        tar -czvf photo-frame.tar.gz photo-frame/
+        zip -r photo-frame.zip photo-frame/
+
+    - name: Create GitHub Release
+      uses: ncipollo/release-action@v1
+      with:
+        token: ${{ secrets.GITHUB_TOKEN }}
+        tag: ${{ github.ref_name }}
+        name: Release ${{ github.ref_name }}
+        body: |
+          Automatically generated release for version ${{ github.ref_name }}.
+        draft: false
+        prerelease: false
+        files: |
+          photo-frame.tar.gz
+          photo-frame.zip
