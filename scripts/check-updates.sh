@@ -14,7 +14,25 @@ WORKING_DIR="/home/$USERNAME/Applications/photo-frame"
 # Check for updates on GitHub
 REPO="cjennison/photo-frame"
 LOCAL_VERSION=$(cat "$WORKING_DIR/version.txt" 2>/dev/null || echo "0.0.0")
-LATEST_VERSION=$(curl -s "https://api.github.com/repos/$REPO/releases/latest" | grep -Po '"tag_name": "\K.*?(?=")')
+
+# Retry logic for fetching the latest version
+MAX_RETRIES=12  # 12 attempts (60 seconds total with 5-second intervals)
+RETRY_INTERVAL=5
+LATEST_VERSION=""
+
+for ((i=1; i<=MAX_RETRIES; i++)); do
+    LATEST_VERSION=$(curl -s "https://api.github.com/repos/$REPO/releases/latest" | grep -Po '"tag_name": "\K.*?(?=")')
+    if [ -n "$LATEST_VERSION" ]; then
+        break
+    fi
+    echo "Attempt $i/$MAX_RETRIES: Unable to determine the latest version. Retrying in $RETRY_INTERVAL seconds..."
+    sleep $RETRY_INTERVAL
+done
+
+if [ -z "$LATEST_VERSION" ]; then
+    echo "Error: Unable to fetch the latest version after $((MAX_RETRIES * RETRY_INTERVAL)) seconds."
+    exit 1
+fi
 
 echo "Local version: $LOCAL_VERSION"
 echo "v$LOCAL_VERSION == $LATEST_VERSION"

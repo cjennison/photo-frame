@@ -50,6 +50,7 @@ LOCAL_SPLASH_DIR = "splash"
 
 os.makedirs(LOCAL_PHOTO_DIR, exist_ok=True)
 os.makedirs(LOCAL_VIDEO_DIR, exist_ok=True)
+os.makedirs(LOCAL_SPLASH_DIR, exist_ok=True)
 
 def load_files():
   try:
