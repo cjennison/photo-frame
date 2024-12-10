@@ -1,4 +1,5 @@
 import os
+import json
 import tkinter as tk
 from tkinter import simpledialog
 from azure.storage.blob import BlobServiceClient  # type: ignore # Azure Storage SDK
@@ -47,12 +48,14 @@ print(AZURE_CONNECTION_STRING, AZURE_CONTAINER_NAME)
 LOCAL_PHOTO_DIR = "pictures"
 LOCAL_VIDEO_DIR = "videos"
 LOCAL_SPLASH_DIR = "splash"
+METADATA_FILE = "metadata.json"
 
 os.makedirs(LOCAL_PHOTO_DIR, exist_ok=True)
 os.makedirs(LOCAL_VIDEO_DIR, exist_ok=True)
 os.makedirs(LOCAL_SPLASH_DIR, exist_ok=True)
 
 def load_files():
+  metadata = {}
   try:
     blob_service_client = BlobServiceClient.from_connection_string(AZURE_CONNECTION_STRING)
     container_client = blob_service_client.get_container_client(AZURE_CONTAINER_NAME)
@@ -73,6 +76,42 @@ def load_files():
             file.write(container_client.download_blob(blob).readall())
         else:
           print(f"Skipping {blob.name}, already exists at {local_path}")
+
+        # Explicitly fetch metadata for each blob
+        blob_client = container_client.get_blob_client(blob.name)
+        blob_metadata = blob_client.get_blob_properties().metadata
+        
+        # Save metadata
+        if "contents" in blob_metadata:
+          metadata[local_path] = { "contents": blob_metadata["contents"] }
+    
+    # Save metadata locally to a JSON file
+    with open(METADATA_FILE, "w") as meta_file:
+        json.dump(metadata, meta_file, indent=4)
+        print(f"Metadata saved to {METADATA_FILE}")
           
   except Exception as e:
     print(f"Error downloading media from Azure: {e}")
+    
+def load_metadata():
+    """Load metadata from the local JSON file."""
+    if os.path.exists(METADATA_FILE):
+        with open(METADATA_FILE, "r") as meta_file:
+            return json.load(meta_file)
+    return {}
+
+def get_unique_content_keys(metadata):
+  if not metadata:
+    return {}
+  # iterate over the metadata and return a dictionary of unique content keys, all are defaulted to true
+  # metadata.contents example: "contents": "people,beach,sky"
+  # expected result: { "people": True, "beach": True, "sky": True }
+  unique_content_keys = {}
+  for meta in metadata.values():
+    if "contents" not in meta:
+      continue
+    contents = meta["contents"].split(",")
+    for content in contents:
+      unique_content_keys[content] = True
+    
+  return unique_content_keys

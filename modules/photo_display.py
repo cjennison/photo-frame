@@ -106,7 +106,7 @@ def display_photo(screen, clock, image_path, config, handle_keypress, draw_ui):
     pygame.display.flip()
     
     for event in pygame.event.get():
-      print(event)
+      # print(event)
       cancel_loop = False
       if hasattr(event, "key"):
         cancel_loop = handle_keypress(event.type, event.key)

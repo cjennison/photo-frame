@@ -10,8 +10,9 @@ from modules.photo_display import display_photo
 from modules.video_display import play_video  
 from modules.draw_ui import draw_ui, show_splash_overlay, preload_splash_image
 from classes.uibutton import UIButton
+from classes.uicheckbox import UICheckbox
 from utils.loadsvgs import load_svg_as_surface
-from utils.loadfiles import load_files
+from utils.loadfiles import get_unique_content_keys, load_files, load_metadata
 from utils.checkdeps import wait_for_server_available
 
 SCREEN_SIZES = {
@@ -39,6 +40,7 @@ FULL_SCREEN = not "src" in os.getcwd()
 # Configuration
 ENABLE_SLIDESHOW = True
 ENABLE_TRANSITION = True
+FILTER_KEYS = {}
 
 UI_VISIBLE = True
 UI_LAST_VISIBLE = time.time()
@@ -58,19 +60,27 @@ splash_start_time = time.time()
 
 ### Buttons
 def toggle_slideshow():
-  global ENABLE_SLIDESHOW, ui_last_shown
+  global ENABLE_SLIDESHOW, UI_LAST_VISIBLE
   ENABLE_SLIDESHOW = not ENABLE_SLIDESHOW
-  ui_last_shown = time.time()
+  UI_LAST_VISIBLE = time.time()
 
 def toggle_transition():
-  global ENABLE_TRANSITION, ui_last_shown
+  global ENABLE_TRANSITION, UI_LAST_VISIBLE
   ENABLE_TRANSITION = not ENABLE_TRANSITION
-  ui_last_shown = time.time()
+  UI_LAST_VISIBLE = time.time()
+  
+def toggle_filter_key(key):
+  print(f"Toggle filter key: {key}")
+  global FILTER_KEYS, UI_LAST_VISIBLE
+  FILTER_KEYS[key] = not FILTER_KEYS[key]
+  UI_LAST_VISIBLE = time.time()
 
 buttons = [
   UIButton((24, SCREEN_SIZES[SCREEN_SIZE][1] - 72, 48, 48), "", toggle_slideshow),
   UIButton((80, SCREEN_SIZES[SCREEN_SIZE][1] - 72, 200, 48), "", toggle_transition),
 ]
+
+checkboxes = []
 
 def display_splash(screen):  
   global splash_active, splash_start_time, splash_image
@@ -81,26 +91,28 @@ def draw(screen):
   if splash_active:
     splash_active = display_splash(screen)
   else:
-    draw_ui(screen, buttons, {
+    draw_ui(screen, buttons, checkboxes, {
       "UI_VISIBLE": UI_VISIBLE,
       "UI_LAST_VISIBLE": UI_LAST_VISIBLE,
       "ENABLE_SLIDESHOW": ENABLE_SLIDESHOW,
       "ENABLE_TRANSITION": ENABLE_TRANSITION
-    }, SCREEN_SIZES[SCREEN_SIZE], RIGHT_TAP_AREA, loaded_icons)
+    }, SCREEN_SIZES[SCREEN_SIZE], RIGHT_TAP_AREA, loaded_icons, FILTER_KEYS, toggle_filter_key)
 
 ## ---------------- MAIN ----------------
 def main():
-  global config, loaded_icons, splash_image_path, splash_image
+  global config, loaded_icons, splash_image_path, splash_image, FILTER_KEYS
 
+  # Check for X server availability
   wait_for_server_available()
 
+  # Initialize Pygame
   pygame.init()
   if FULL_SCREEN:
     screen = pygame.display.set_mode(SCREEN_SIZES[SCREEN_SIZE], pygame.FULLSCREEN | pygame.NOFRAME)
   else:
     screen = pygame.display.set_mode(SCREEN_SIZES[SCREEN_SIZE])
   pygame.display.set_caption("Digital Photo Frame")
-  pygame.mouse.set_visible(False)
+  pygame.mouse.set_visible(not FULL_SCREEN)
   clock = pygame.time.Clock()
   
   # Preload splash image
@@ -112,7 +124,8 @@ def main():
   else:
     splash_image_path = os.path.join(splash_folder, random.choice(splash_files))
     splash_image = preload_splash_image(splash_image_path, SCREEN_SIZES[SCREEN_SIZE])
-
+  
+  # Load icons
   loaded_icons = {
     key: load_svg_as_surface(path, (50, 50))  # Resize icons to 50x50
     for key, path in ICON_PATHS.items()
@@ -125,14 +138,30 @@ def main():
   IMAGES = [os.path.join(LOCAL_PHOTO_DIR, f) for f in os.listdir(LOCAL_PHOTO_DIR) if f.endswith(('.jpg', '.jpeg', '.png'))]
   VIDEOS = [os.path.join(LOCAL_VIDEO_DIR, f) for f in os.listdir(LOCAL_VIDEO_DIR) if f.endswith(('.mp4', '.avi', '.mov'))]
   
+  metadata = load_metadata()
+  FILTER_KEYS = get_unique_content_keys(metadata)
+  print(metadata)
+  
+  # Setup checkboxes
+  checklist_x = 50  # X position for the checklist
+  checklist_y = 50  # Starting Y position for the checklist
+  item_height = 40  # Height of each checklist item
+  for i, key in enumerate(FILTER_KEYS.keys()):
+    rect = (checklist_x, checklist_y + i * item_height, 30, 30)
+    checkboxes.append(UICheckbox(rect, key, key, toggle_filter_key))
+  
   media_index = -1
   media_type = None
   last_played_media = None
+  
+  image_path = None
+  video_path = None
   
   def advance_media():
     nonlocal media_index
     nonlocal media_type
     nonlocal last_played_media
+    nonlocal image_path, video_path
     media_type = random.choice(["image", "video"])
     if media_type == "image":
       media_index = random.randint(0, len(IMAGES) - 1)
@@ -145,6 +174,40 @@ def main():
       return False
     
     last_played_media = (media_type, media_index)
+    
+    # Check the metadata of this media
+    # If the media contents are filtered out, skip it
+    target_path = None
+    if media_type == "image":
+      image_path = IMAGES[media_index % len(IMAGES)]
+      target_path = image_path
+      
+    elif media_type == "video":
+      video_path = VIDEOS[media_index % len(VIDEOS)]
+      target_path = video_path
+    
+    if target_path in metadata and "contents" in metadata[target_path]:
+      contents = metadata[target_path]["contents"]
+      
+      # Allow all photos with no contents
+      if not contents:
+        return True
+      
+      print(f"Contents: {contents}")
+      content_list = contents.split(",") # ["dog", "cat", "beach"]
+      
+      # Check if any content keys are filtered out
+      content_filtered_out = False
+      for content in content_list:
+        if content in FILTER_KEYS and FILTER_KEYS[content] == False:
+          content_filtered_out = True
+          break
+      
+      if content_filtered_out:
+        print(f"Skipping {media_type} {media_index % len(IMAGES)} due to content filtering")
+        advance_media()
+        return False
+  
     return True
   
   def handle_keypress(eventType, eventKey, event=None):
@@ -168,6 +231,10 @@ def main():
       # Check button collision
       for button in buttons:
           button.handle_event(event)
+      
+      # Check button collision
+      for checkbox in checkboxes:
+          checkbox.handle_event(event)
         
     if eventType == QUIT:
       print("Exiting...")
@@ -195,11 +262,9 @@ def main():
       
       display_splash(screen)
 
-      if media_type == "image":
-        image_path = IMAGES[media_index % len(IMAGES)]
+      if media_type == "image" and image_path:
         display_photo(screen, clock, image_path, config, handle_keypress, draw)
-      elif media_type == "video":
-        video_path = VIDEOS[media_index % len(VIDEOS)]
+      elif media_type == "video" and video_path:
         play_video(screen, clock, video_path, config, handle_keypress, draw)
 
       if ENABLE_SLIDESHOW:

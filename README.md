@@ -11,6 +11,8 @@ This application is a digital photo frame designed to run on Raspberry Pi. It do
 - Support for manual and automatic updates via GitHub.
 - Python virtual environment for dependency management.
 - Autostarts on Raspberry Pi boot.
+- Uses the `contents` metadata on Azure Blob Storage to determine filtering options.
+  > For example, `contents: dogs,cats` will enable filtering on dogs and cats.
 
 ---
 
@@ -208,10 +210,12 @@ To update the application via Release:
 
 ## Notes
 
-- **Environment Variables**: Store sensitive information like Azure SAS tokens in a `.env` file. Example:
+- **Environment Variables**: Store sensitive information like Azure keys in a `.env` file. Example:
 
   ```
-  SAS_TOKEN="?sv=2022-11-02&ss=bfqt&srt=co&sp=rw"
+  AAZURE_CONNECTION_STRING="your-connection-string"
+  AZURE_CONTAINER_NAME="your-container-name"
+
   ```
 
 - **Requirements**: Ensure `requirements.txt` lists all Python dependencies.
@@ -232,9 +236,7 @@ To update the application via Release:
      ```
 
 2. **Media Not Loading**:
-   - Ensure Azure SAS token is valid and has the correct permissions.
+   - Ensure Azure Connection string is valid and has the correct permissions.
    - Verify network connectivity.
 
 ---
-
-For further assistance, please reach out to the repository maintainer.
