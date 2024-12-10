@@ -46,9 +46,11 @@ print(AZURE_CONNECTION_STRING, AZURE_CONTAINER_NAME)
 
 LOCAL_PHOTO_DIR = "pictures"
 LOCAL_VIDEO_DIR = "videos"
+LOCAL_SPLASH_DIR = "splash"
 
 os.makedirs(LOCAL_PHOTO_DIR, exist_ok=True)
 os.makedirs(LOCAL_VIDEO_DIR, exist_ok=True)
+os.makedirs(LOCAL_SPLASH_DIR, exist_ok=True)
 
 def load_files():
   try:
@@ -61,6 +63,8 @@ def load_files():
         local_path = os.path.join(LOCAL_PHOTO_DIR, os.path.basename(blob.name))
       elif blob.name.startswith("videos/"):
         local_path = os.path.join(LOCAL_VIDEO_DIR, os.path.basename(blob.name))
+      elif blob.name.startswith("splash/"):
+        local_path = os.path.join(LOCAL_SPLASH_DIR, os.path.basename(blob.name))
 
       if local_path:
         if not os.path.exists(local_path):

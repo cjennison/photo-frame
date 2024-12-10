@@ -82,8 +82,6 @@ def display_photo(screen, clock, image_path, config, handle_keypress, draw_ui):
   direction = random.choice(["left", "right"]) if effect_type == "translate" else ""
 
   while True:
-    
-      
     elapsed_time = time.time() - start_time
 
     if effect_type == "zoom":

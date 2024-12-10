@@ -8,7 +8,7 @@ import cairosvg  # type: ignore
 from pygame.locals import * # type: ignore
 from modules.photo_display import display_photo
 from modules.video_display import play_video  
-from modules.draw_ui import draw_transparent_rect, draw_icon, draw_ui
+from modules.draw_ui import draw_ui, show_splash
 from classes.uibutton import UIButton
 from utils.loadsvgs import load_svg_as_surface
 from utils.loadfiles import load_files
@@ -32,7 +32,7 @@ ICON_PATHS = {
   "skip": "icons/skip.svg"
 }
 
-FULL_SCREEN = True
+FULL_SCREEN = False
 
 # Configuration
 ENABLE_SLIDESHOW = True
@@ -71,6 +71,7 @@ def draw(screen):
     "ENABLE_TRANSITION": ENABLE_TRANSITION
   }, SCREEN_SIZES[SCREEN_SIZE], RIGHT_TAP_AREA, loaded_icons)
   
+
 ## ---------------- MAIN ----------------
 def main():
   global config, loaded_icons
@@ -85,6 +86,9 @@ def main():
   pygame.display.set_caption("Digital Photo Frame")
   pygame.mouse.set_visible(False)
   clock = pygame.time.Clock()
+  
+  # Show splash screen
+  show_splash(screen, clock)
   
   loaded_icons = {
     key: load_svg_as_surface(path, (50, 50))  # Resize icons to 50x50
