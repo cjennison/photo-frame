@@ -99,6 +99,24 @@ def draw(screen):
     }, SCREEN_SIZES[SCREEN_SIZE], RIGHT_TAP_AREA, loaded_icons, FILTER_KEYS, toggle_filter_key)
 
 ## ---------------- MAIN ----------------
+def generate_content_order(images, videos):
+  content_order = [("image", img) for img in images] + [("video", vid) for vid in videos]
+  random.shuffle(content_order)
+  return content_order
+
+# Check if there exists any content in the content list that matches the filter keys
+def check_any_content_matches(metadata, content_list, filter_keys):
+  for _, media_path in content_list:
+    if media_path in metadata and "contents" in metadata[media_path]:
+      contents = metadata[media_path]["contents"]  # "dog,cat,beach"
+      meta_contents_list = contents.split(",")
+            
+      # Ensure all content keys are enabled in filter keys
+      if all(content in filter_keys and filter_keys[content] for content in meta_contents_list):
+        return True
+
+    return False
+
 def main():
   global config, loaded_icons, splash_image_path, splash_image, FILTER_KEYS
 
@@ -151,49 +169,30 @@ def main():
     checkboxes.append(UICheckbox(rect, key, key, toggle_filter_key))
   
   media_index = -1
-  media_type = None
-  last_played_media = None
+  media_type = None  
+  media_path = None
   
-  image_path = None
-  video_path = None
+  # Prevents a double advance if the loop ends due to interruption
+  triggered_button_event = False
   
+  # Generate content order
+  content_order = generate_content_order(IMAGES, VIDEOS) # [('video', 'path_to/video.mp4'), ('image', 'path_to/image.jpg')]
   def advance_media():
-    nonlocal media_index
-    nonlocal media_type
-    nonlocal last_played_media
-    nonlocal image_path, video_path
-    media_type = random.choice(["image", "video"])
-    if media_type == "image":
-      media_index = random.randint(0, len(IMAGES) - 1)
-    elif media_type == "video":
-      media_index = random.randint(0, len(VIDEOS) - 1)
-      
-    if last_played_media and last_played_media == (media_type, media_index):
-      # If we've already played this media, skip it
-      advance_media()
-      return False
+    nonlocal content_order
+    nonlocal media_index, media_type, media_path 
     
-    last_played_media = (media_type, media_index)
-    
+    media_index += 1
+    media_type, media_path = content_order[media_index % len(content_order)]
+    print(f"Advancing to {media_type} {media_path}, index: {media_index}")
+        
     # Check the metadata of this media
-    # If the media contents are filtered out, skip it
-    target_path = None
-    if media_type == "image":
-      image_path = IMAGES[media_index % len(IMAGES)]
-      target_path = image_path
-      
-    elif media_type == "video":
-      video_path = VIDEOS[media_index % len(VIDEOS)]
-      target_path = video_path
-    
-    if target_path in metadata and "contents" in metadata[target_path]:
-      contents = metadata[target_path]["contents"]
+    if media_path in metadata and "contents" in metadata[media_path]:
+      contents = metadata[media_path]["contents"]
       
       # Allow all photos with no contents
       if not contents:
         return True
       
-      print(f"Contents: {contents}")
       content_list = contents.split(",") # ["dog", "cat", "beach"]
       
       # Check if any content keys are filtered out
@@ -204,14 +203,16 @@ def main():
           break
       
       if content_filtered_out:
-        print(f"Skipping {media_type} {media_index % len(IMAGES)} due to content filtering")
-        advance_media()
-        return False
+        if check_any_content_matches(metadata, content_order, FILTER_KEYS):
+          return advance_media()
+        else:
+          print("No more content matches the filter keys.")
   
     return True
   
   def handle_keypress(eventType, eventKey, event=None):
     global UI_VISIBLE, UI_LAST_VISIBLE, config
+    nonlocal triggered_button_event
     
     # MouseDown events require special handling
     if event and event.type == MOUSEBUTTONDOWN:
@@ -224,8 +225,9 @@ def main():
         
       # Handle tap right side
       if mouse_x >= SCREEN_SIZES[SCREEN_SIZE][0] - SCREEN_SIZES[SCREEN_SIZE][0] * RIGHT_TAP_AREA:  # Right 5th
-        print("Next media")
+        print("Tapped right side")
         advance_media()
+        triggered_button_event = True
         return True
       
       # Check button collision
@@ -247,13 +249,16 @@ def main():
       elif eventKey == K_RIGHT:
         print("Next media")
         advance_media()
+        triggered_button_event = True
         return True
   
+  print("Starting main loop...")
   advance_media()
   running = True
   while running:
     try:
-      # print(f"Displaying {media_type} {media_index % len(IMAGES)}")
+      print(f"Displaying {media_type} {media_path}")
+      triggered_button_event = False
       config = {
         "ENABLE_SLIDESHOW": ENABLE_SLIDESHOW,
         "ENABLE_TRANSITION": ENABLE_TRANSITION,
@@ -262,12 +267,12 @@ def main():
       
       display_splash(screen)
 
-      if media_type == "image" and image_path:
-        display_photo(screen, clock, image_path, config, handle_keypress, draw)
-      elif media_type == "video" and video_path:
-        play_video(screen, clock, video_path, config, handle_keypress, draw)
+      if media_type == "image" and media_path:
+        display_photo(screen, clock, media_path, config, handle_keypress, draw)
+      elif media_type == "video" and media_path:
+        play_video(screen, clock, media_path, config, handle_keypress, draw)
 
-      if ENABLE_SLIDESHOW:
+      if ENABLE_SLIDESHOW and not triggered_button_event:
         advance_media()
     except SystemExit:
       running = False
