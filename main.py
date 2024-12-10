@@ -12,7 +12,7 @@ from modules.draw_ui import draw_ui, show_splash_overlay, preload_splash_image
 from classes.uibutton import UIButton
 from classes.uicheckbox import UICheckbox
 from utils.loadsvgs import load_svg_as_surface
-from utils.loadfiles import get_unique_content_keys, load_files, load_metadata
+from utils.loadfiles import get_unique_content_keys, load_files, load_metadata, write_options_json, read_options_json
 from utils.checkdeps import wait_for_server_available
 
 SCREEN_SIZES = {
@@ -56,6 +56,30 @@ splash_image = None
 splash_active = True
 splash_start_time = time.time()
 
+## ---------------- System ----------------
+
+def write_new_options():
+  options = {
+    "ENABLE_SLIDESHOW": ENABLE_SLIDESHOW,
+    "ENABLE_TRANSITION": ENABLE_TRANSITION,
+    "FILTER_KEYS": FILTER_KEYS
+  }
+  
+  write_options_json(options)
+
+def get_options():
+  global ENABLE_SLIDESHOW, ENABLE_TRANSITION, FILTER_KEYS
+  options = read_options_json()
+  current_filter_keys = FILTER_KEYS
+  incoming_filter_keys = {}
+  if options:
+    ENABLE_SLIDESHOW = options.get("ENABLE_SLIDESHOW", True)
+    ENABLE_TRANSITION = options.get("ENABLE_TRANSITION", True)
+    incoming_filter_keys = options.get("FILTER_KEYS", {})
+    
+  # Merge incoming filter keys with current filter keys
+  FILTER_KEYS = {**current_filter_keys, **incoming_filter_keys}
+
 ## ---------------- UI ----------------
 
 ### Buttons
@@ -63,17 +87,20 @@ def toggle_slideshow():
   global ENABLE_SLIDESHOW, UI_LAST_VISIBLE
   ENABLE_SLIDESHOW = not ENABLE_SLIDESHOW
   UI_LAST_VISIBLE = time.time()
+  write_new_options()
 
 def toggle_transition():
   global ENABLE_TRANSITION, UI_LAST_VISIBLE
   ENABLE_TRANSITION = not ENABLE_TRANSITION
   UI_LAST_VISIBLE = time.time()
+  write_new_options()
   
 def toggle_filter_key(key):
   print(f"Toggle filter key: {key}")
   global FILTER_KEYS, UI_LAST_VISIBLE
   FILTER_KEYS[key] = not FILTER_KEYS[key]
   UI_LAST_VISIBLE = time.time()
+  write_new_options()
 
 buttons = [
   UIButton((24, SCREEN_SIZES[SCREEN_SIZE][1] - 72, 48, 48), "", toggle_slideshow),
@@ -106,16 +133,26 @@ def generate_content_order(images, videos):
 
 # Check if there exists any content in the content list that matches the filter keys
 def check_any_content_matches(metadata, content_list, filter_keys):
+  print(content_list, filter_keys)
+  some_content_matches = False
   for _, media_path in content_list:
     if media_path in metadata and "contents" in metadata[media_path]:
       contents = metadata[media_path]["contents"]  # "dog,cat,beach"
       meta_contents_list = contents.split(",")
-            
-      # Ensure all content keys are enabled in filter keys
-      if all(content in filter_keys and filter_keys[content] for content in meta_contents_list):
-        return True
-
-    return False
+      
+      missing_content = False
+      for content in meta_contents_list: # dog in "dog", "cat"
+        if content in filter_keys and filter_keys[content] == False:
+          print(f"Content {content} is filtered out due to filter keys.")
+          missing_content = True
+          break
+        
+      if not missing_content:
+        print(f"Content {contents} matches the filter keys.")
+        some_content_matches = True
+        break
+        
+  return some_content_matches
 
 def main():
   global config, loaded_icons, splash_image_path, splash_image, FILTER_KEYS
@@ -159,6 +196,11 @@ def main():
   metadata = load_metadata()
   FILTER_KEYS = get_unique_content_keys(metadata)
   print(metadata)
+  
+  # Set options
+  get_options()
+  
+  ###### Run the main loop ######
   
   # Setup checkboxes
   checklist_x = 50  # X position for the checklist

@@ -115,3 +115,13 @@ def get_unique_content_keys(metadata):
       unique_content_keys[content] = True
     
   return unique_content_keys
+
+def write_options_json(options={}):
+  with open("options.json", "w") as options_file:
+    json.dump(options, options_file, indent=2)
+    
+def read_options_json():
+  if os.path.exists("options.json"):
+    with open("options.json", "r") as options_file:
+      return json.load(options_file)
+  return {}

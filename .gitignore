@@ -24,3 +24,5 @@ splash
 
 .env
 run.sh
+options.json
+metadata.json
