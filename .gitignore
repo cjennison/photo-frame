@@ -20,7 +20,7 @@ dist/
 
 pictures/
 videos/
-splash/
+splash
 
 .env
 run.sh

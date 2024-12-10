@@ -8,10 +8,11 @@ import cairosvg  # type: ignore
 from pygame.locals import * # type: ignore
 from modules.photo_display import display_photo
 from modules.video_display import play_video  
-from modules.draw_ui import draw_ui, show_splash
+from modules.draw_ui import draw_ui, show_splash_overlay, preload_splash_image
 from classes.uibutton import UIButton
 from utils.loadsvgs import load_svg_as_surface
 from utils.loadfiles import load_files
+from utils.checkdeps import wait_for_server_available
 
 SCREEN_SIZES = {
   "7inch": (800, 480),
@@ -46,6 +47,12 @@ RIGHT_TAP_AREA = 1/6
 config = {}
 loaded_icons = {}
 
+# Splash screen
+splash_image_path = None
+splash_image = None
+splash_active = True
+splash_start_time = time.time()
+
 ## ---------------- UI ----------------
 
 ### Buttons
@@ -63,20 +70,28 @@ buttons = [
   UIButton((24, SCREEN_SIZES[SCREEN_SIZE][1] - 72, 48, 48), "", toggle_slideshow),
   UIButton((80, SCREEN_SIZES[SCREEN_SIZE][1] - 72, 200, 48), "", toggle_transition),
 ]
-def draw(screen):
-  draw_ui(screen, buttons, {
-    "UI_VISIBLE": UI_VISIBLE,
-    "UI_LAST_VISIBLE": UI_LAST_VISIBLE,
-    "ENABLE_SLIDESHOW": ENABLE_SLIDESHOW,
-    "ENABLE_TRANSITION": ENABLE_TRANSITION
-  }, SCREEN_SIZES[SCREEN_SIZE], RIGHT_TAP_AREA, loaded_icons)
+
+def display_splash(screen):  
+  global splash_active, splash_start_time, splash_image
+  return show_splash_overlay(screen, splash_image, splash_start_time)
   
+def draw(screen):
+  global splash_active
+  if splash_active:
+    splash_active = display_splash(screen)
+  else:
+    draw_ui(screen, buttons, {
+      "UI_VISIBLE": UI_VISIBLE,
+      "UI_LAST_VISIBLE": UI_LAST_VISIBLE,
+      "ENABLE_SLIDESHOW": ENABLE_SLIDESHOW,
+      "ENABLE_TRANSITION": ENABLE_TRANSITION
+    }, SCREEN_SIZES[SCREEN_SIZE], RIGHT_TAP_AREA, loaded_icons)
 
 ## ---------------- MAIN ----------------
 def main():
-  global config, loaded_icons
+  global config, loaded_icons, splash_image_path, splash_image
 
-  print("Starting photo frame...")
+  wait_for_server_available()
 
   pygame.init()
   if FULL_SCREEN:
@@ -87,9 +102,16 @@ def main():
   pygame.mouse.set_visible(False)
   clock = pygame.time.Clock()
   
-  # Show splash screen
-  show_splash(screen, clock)
-  
+  # Preload splash image
+  splash_folder = "splash"
+  splash_files = [f for f in os.listdir(splash_folder) if f.lower().endswith(('.png', '.jpg', '.jpeg'))]
+  if not splash_files:
+    print("No splash images found in the splash folder.")
+    splash_image = None
+  else:
+    splash_image_path = os.path.join(splash_folder, random.choice(splash_files))
+    splash_image = preload_splash_image(splash_image_path, SCREEN_SIZES[SCREEN_SIZE])
+
   loaded_icons = {
     key: load_svg_as_surface(path, (50, 50))  # Resize icons to 50x50
     for key, path in ICON_PATHS.items()
@@ -163,12 +185,14 @@ def main():
   running = True
   while running:
     try:
-      print(f"Displaying {media_type} {media_index % len(IMAGES)}")
+      # print(f"Displaying {media_type} {media_index % len(IMAGES)}")
       config = {
         "ENABLE_SLIDESHOW": ENABLE_SLIDESHOW,
         "ENABLE_TRANSITION": ENABLE_TRANSITION,
         "SCREEN_SIZE": SCREEN_SIZES[SCREEN_SIZE]
       }
+      
+      display_splash(screen)
 
       if media_type == "image":
         image_path = IMAGES[media_index % len(IMAGES)]

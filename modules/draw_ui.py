@@ -48,46 +48,29 @@ def draw_ui(screen, buttons, ui_state, screen_size, right_tap_area, loaded_icons
     draw_icon(screen, loaded_icons.get("skip"), (screen_size[0] - screen_size[0] * right_tap_area + 36, screen_size[1] / 2 - 24))
     draw_icon(screen, loaded_icons.get("play" if ui_state['ENABLE_SLIDESHOW'] else "pause"), (24, screen_size[1] - 72))
 
-def show_splash(screen, clock):
-  splash_folder = "splash"
-  splash_files = [f for f in os.listdir(splash_folder) if f.lower().endswith(('.png', '.jpg', '.jpeg'))]
-
-  if not splash_files:
-    print("No splash images found in the splash folder.")
-    return
-
-  splash_image_path = os.path.join(splash_folder, random.choice(splash_files))
-  print("Displaying", splash_image_path)
+def preload_splash_image(splash_image_path, screen_size):
   splash_image = pygame.image.load(splash_image_path).convert()
-  
-  start_rect = get_scaled_rect(splash_image, screen)
-  splash_image, scaled_rect = scale_image(splash_image, start_rect)
-  
-  # Display splash screen for 5 seconds
-  start_time = time.time()
-  fade_duration = 2  # seconds for fade out
+  return pygame.transform.scale(splash_image, screen_size)
 
-  while True:
-    elapsed = time.time() - start_time
+def show_splash_overlay(screen, splash_image, start_time, duration=7, fade_duration=4):
+  elapsed = time.time() - start_time
+  alpha = 255
+  if elapsed > duration + fade_duration:
+    return False  # Splash duration has ended
 
-    if elapsed > 5 + fade_duration:
-      break
+  if elapsed <= duration:
+    screen.blit(splash_image, (0, 0))
+  else:
+    alpha = max(0, 255 - int(255 * (elapsed - duration) / fade_duration))
+    temp_surface = splash_image.copy()
+    temp_surface.set_alpha(alpha)
+    screen.blit(temp_surface, (0, 0))
 
-    screen.fill((0, 0, 0))
+  font = pygame.font.Font(None, 72)
+  text_surface = font.render("I love you", True, (255, 255, 255))
+  text_surface.set_alpha(alpha)
+  text_rect = text_surface.get_rect(center=(screen.get_width() // 2, screen.get_height() // 2))
+  screen.blit(text_surface, text_rect)
 
-    if elapsed <= 5:
-      screen.blit(splash_image, scaled_rect)
-    else:
-      alpha = max(0, 255 - int(255 * (elapsed - 5) / fade_duration))
-      temp_surface = splash_image.copy()
-      temp_surface.set_alpha(alpha)
-      screen.blit(temp_surface, scaled_rect)
-
-    font = pygame.font.Font(None, 72)
-    text_surface = font.render("I love you", True, (255, 255, 255))
-    text_rect = text_surface.get_rect(center=(screen.get_width() // 2, screen.get_height() // 2))
-    screen.blit(text_surface, text_rect)
-
-    pygame.display.flip()
-    clock.tick(60)
+  return True  # Splash is still active
   
