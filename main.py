@@ -33,7 +33,8 @@ ICON_PATHS = {
   "skip": "icons/skip.svg"
 }
 
-FULL_SCREEN = False
+# FULL_SCREEN is false if the directory has src in it, otherwise its true
+FULL_SCREEN = not "src" in os.getcwd()
 
 # Configuration
 ENABLE_SLIDESHOW = True
