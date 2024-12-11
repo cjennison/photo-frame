@@ -8,20 +8,39 @@ if ! id "$USERNAME" &>/dev/null; then
     exit 1
 fi
 
+# Load environment variables from .env
+ENV_FILE="/home/$USERNAME/Applications/photo-frame/.env"
+if [ -f "$ENV_FILE" ]; then
+    export $(grep -v '^#' "$ENV_FILE" | xargs)
+else
+    echo "Warning: .env file not found at $ENV_FILE. Proceeding without GITHUB_TOKEN."
+fi
+
 # Define working directory and service file path
 WORKING_DIR="/home/$USERNAME/Applications/photo-frame"
 
 # Check for updates on GitHub
+# GitHub API Authentication
+GITHUB_API_URL="https://api.github.com/repos"
 REPO="cjennison/photo-frame"
+if [ -z "$GITHUB_TOKEN" ]; then
+    echo "Warning: GITHUB_TOKEN is not set. API requests may be throttled (limited to 60 requests/hour)."
+    AUTH_HEADER=""
+else
+    AUTH_HEADER="-H \"Authorization: token $GITHUB_TOKEN\""
+fi
+
 LOCAL_VERSION=$(cat "$WORKING_DIR/version.txt" 2>/dev/null || echo "0.0.0")
 
 # Retry logic for fetching the latest version
-MAX_RETRIES=12  # 12 attempts (60 seconds total with 5-second intervals)
+MAX_RETRIES=5  # 12 attempts (60 seconds total with 5-second intervals)
 RETRY_INTERVAL=5
 LATEST_VERSION=""
 
 for ((i=1; i<=MAX_RETRIES; i++)); do
-    LATEST_VERSION=$(curl -s "https://api.github.com/repos/$REPO/releases/latest" | grep -Po '"tag_name": "\K.*?(?=")')
+    LATEST_VERSION=$(eval curl -s $AUTH_HEADER \
+        "$GITHUB_API_URL/$REPO/releases/latest" | grep -Po '"tag_name": "\K.*?(?=")')
+    echo "Result: $LATEST_VERSION"
     if [ -n "$LATEST_VERSION" ]; then
         break
     fi
@@ -31,7 +50,7 @@ done
 
 if [ -z "$LATEST_VERSION" ]; then
     echo "Error: Unable to fetch the latest version after $((MAX_RETRIES * RETRY_INTERVAL)) seconds."
-    exit 1
+    exit 0
 fi
 
 echo "Local version: $LOCAL_VERSION"

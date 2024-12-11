@@ -213,12 +213,15 @@ To update the application via Release:
 - **Environment Variables**: Store sensitive information like Azure keys in a `.env` file. Example:
 
   ```
-  AAZURE_CONNECTION_STRING="your-connection-string"
+  AZURE_CONNECTION_STRING="your-connection-string"
   AZURE_CONTAINER_NAME="your-container-name"
-
+  GITHUB_TOKEN="your-github-token"
   ```
 
 - **Requirements**: Ensure `requirements.txt` lists all Python dependencies.
+- **Getting Updates**: It is recommended to add a github token to your `.env` file to avoid rate limiting.  
+  Generate a `read only` token from your github account for **Public Repositories** and add it to the `.env` file. [Create Github Token](https://github.com/settings/personal-access-tokens/new)
+  > Unauthorized requests will be limited.
 
 ---
 
