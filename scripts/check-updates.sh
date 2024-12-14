@@ -66,6 +66,13 @@ if [ "v$LOCAL_VERSION" != "$LATEST_VERSION" ]; then
     tar -xzf "$WORKING_DIR/latest.tar.gz" -C "$WORKING_DIR" --strip-components=1
     rm "$WORKING_DIR/latest.tar.gz"
 
+    # Ensure the target build directory exists and is empty
+    mkdir -p "$WORKING_DIR/webapp/client/build"
+    rm -rf "$WORKING_DIR/webapp/client/build/*"
+
+    # Move the contents of webapp-client-build into the build directory
+    mv "$WORKING_DIR/webapp-client-build/"* "$WORKING_DIR/webapp/client/build/"
+
     # Reinstall requirements
     source "$WORKING_DIR/venv/bin/activate"
     pip install -r "$WORKING_DIR/requirements.txt"
