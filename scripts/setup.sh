@@ -2,7 +2,7 @@
 
 # Variables
 
-REQUIRED_PACKAGES=("curl" "unzip" "python3" "python3-venv")
+REQUIRED_PACKAGES=("curl" "unzip" "python3" "python3-venv" "npm" "nodejs")
 MAIN_SCRIPT="main.py"
 
 # Update system and install required packages
@@ -26,10 +26,22 @@ else
   echo "Virtual environment already exists."
 fi
 
-# Run the application
-echo "Starting the application..."
-source venv/bin/activate
-python3 $MAIN_SCRIPT
+# Log the Raspberry Pi's current local IP address
+echo "Fetching current Raspberry Pi IP address..."
+PI_IP=$(hostname -I | awk '{print $1}')
+if [ -z "$PI_IP" ]; then
+    echo "Unable to determine IP address."
+else
+    echo "Your Raspberry Pi IP address is: http://$PI_IP:3000"
+fi
 
-# Final steps
-echo "Setup and execution complete. Application is now running."
+
+# Ask the user if they want to run the program now
+echo "Setup complete. Would you like to start the server now? (y/n)"
+read -r RUN_NOW
+
+if [ "$RUN_NOW" != "y" ]; then
+  echo "Starting application..."
+  source venv/bin/activate
+  python3 $MAIN_SCRIPT
+fi

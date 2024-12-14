@@ -1,5 +1,6 @@
 # Ignore Python virtual environments
 frameenv/
+venv/
 
 # Ignore compiled Python files
 __pycache__/
@@ -26,3 +27,5 @@ splash
 run.sh
 options.json
 metadata.json
+
+node_modules/
