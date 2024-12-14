@@ -58,19 +58,24 @@ echo "v$LOCAL_VERSION == $LATEST_VERSION"
 if [ "v$LOCAL_VERSION" != "$LATEST_VERSION" ]; then
     echo "New version available: $LATEST_VERSION. Updating..."
 
-    # Download the latest release
-    DOWNLOAD_URL=$(curl -s "https://api.github.com/repos/$REPO/releases/latest" | grep -Po '"tarball_url": "\K.*?(?=")')
-    curl -L "$DOWNLOAD_URL" -o "$WORKING_DIR/latest.tar.gz"
+    ASSET_URL=$(curl -s "https://api.github.com/repos/$REPO/releases/latest" \
+    | grep -Eo '"browser_download_url": "[^"]*photo-frame\.tar\.gz"' \
+    | grep -Eo 'https://[^"]+')
+
+    if [ -z "$ASSET_URL" ]; then
+        echo "Could not find photo-frame.tar.gz asset in the latest release."
+        exit 1
+    fi
+
+    curl -L "$ASSET_URL" -o "$WORKING_DIR/latest.tar.gz"
 
     # Extract and overwrite files
     tar -xzf "$WORKING_DIR/latest.tar.gz" -C "$WORKING_DIR" --strip-components=1
     rm "$WORKING_DIR/latest.tar.gz"
 
     # Ensure the target build directory exists and is empty
+    rm -rf "$WORKING_DIR/webapp/client/build"
     mkdir -p "$WORKING_DIR/webapp/client/build"
-    rm -rf "$WORKING_DIR/webapp/client/build/*"
-
-    # Move the contents of webapp-client-build into the build directory
     mv "$WORKING_DIR/webapp-client-build/"* "$WORKING_DIR/webapp/client/build/"
 
     # Reinstall requirements
