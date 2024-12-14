@@ -27,11 +27,13 @@ jobs:
 
       - name: Prepare release archive
         run: |
+          echo "Preparing release archive..."
           mkdir photo-frame
           shopt -s extglob
           cp -r !(photo-frame) photo-frame/
-          tar -czvf photo-frame.tar.gz photo-frame/
-          zip -r photo-frame.zip photo-frame/
+          tar --exclude='photo-frame/webapp/client/node_modules' -czvf photo-frame.tar.gz photo-frame/
+          zip -r -x "photo-frame/webapp/client/node_modules/*" photo-frame.zip photo-frame/
+          echo "Archive preparation completed."
 
       - name: Upload release artifacts
         uses: actions/upload-artifact@v3
