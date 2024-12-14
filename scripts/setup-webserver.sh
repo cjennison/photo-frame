@@ -31,6 +31,9 @@ chown $USERNAME:$USERNAME "$LOG_DIR"
 
 echo "Creating systemd service file at $SERVICE_FILE..."
 
+# Create systemd service file
+SERVICE_FILE="/etc/systemd/system/$SERVICE_NAME.service"
+
 cat <<EOL > $SERVICE_FILE
 [Unit]
 Description=Node.js Web Server
