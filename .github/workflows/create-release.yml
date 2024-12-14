@@ -13,11 +13,24 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v3
 
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: "18.19.0"
+
+      - name: Install dependencies and build client
+        run: |
+          cd ./webapp/client
+          npm install
+          npm run build
+          echo "Webapp build completed."
+
       - name: Prepare release archive
         run: |
           mkdir photo-frame
           shopt -s extglob
           cp -r !(photo-frame) photo-frame/
+          cp -r ./webapp/client/build photo-frame/webap/client/build
           tar -czvf photo-frame.tar.gz photo-frame/
           zip -r photo-frame.zip photo-frame/
 
