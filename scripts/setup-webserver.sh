@@ -41,7 +41,7 @@ Description=Node.js Web Server
 After=network.target
 
 [Service]
-ExecStart=$NODE_EXEC run-install
+ExecStart=$NODE_EXEC run run-install
 WorkingDirectory=$WORKING_DIR
 Restart=always
 User=$USERNAME
