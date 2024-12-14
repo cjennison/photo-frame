@@ -25,6 +25,12 @@ fi
 
 WORKING_DIR="/home/$USERNAME/Applications/photo-frame/webapp"
 
+# Copy the .env-template to .env
+if [ ! -f "$WORKING_DIR/webapp/.env" ]; then
+    cp "$WORKING_DIR/webapp/.env-template" "$WORKING_DIR/webapp/.env"
+    echo "[INFO] Copied .env-template to .env. Fill out the .env file with the appropriate values."
+fi
+
 # Create log directory
 echo "Creating log directory at $LOG_DIR..."
 mkdir -p "$LOG_DIR"
