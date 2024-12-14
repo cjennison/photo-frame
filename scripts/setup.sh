@@ -49,7 +49,7 @@ echo "sudo source scripts/setup-webserver.sh"
 echo "Setup complete. Would you like to start the system now? (y/n)"
 read -r RUN_NOW
 
-if [ "$RUN_NOW" != "y" ]; then
+if [ "$RUN_NOW" == "y" ]; then
   echo "Starting application..."
   source venv/bin/activate
   python3 $MAIN_SCRIPT

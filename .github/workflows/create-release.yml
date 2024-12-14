@@ -31,7 +31,7 @@ jobs:
           mkdir photo-frame
           shopt -s extglob
           cp -r !(photo-frame) photo-frame/
-
+          cp -r ./webapp/client/build ./photo-frame/webapp-client-build
           # Remove node_modules from the copy (if still present)
           if [ -d "photo-frame/webapp/client/node_modules" ]; then
             echo "Removing node_modules from the copied directory..."
