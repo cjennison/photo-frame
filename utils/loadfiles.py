@@ -56,6 +56,7 @@ os.makedirs(LOCAL_SPLASH_DIR, exist_ok=True)
 
 def load_files():
   metadata = {}
+  downloaded_files = set()
   try:
     blob_service_client = BlobServiceClient.from_connection_string(AZURE_CONNECTION_STRING)
     container_client = blob_service_client.get_container_client(AZURE_CONTAINER_NAME)
@@ -70,6 +71,7 @@ def load_files():
         local_path = os.path.join(LOCAL_SPLASH_DIR, os.path.basename(blob.name))
 
       if local_path:
+        downloaded_files.add(local_path)
         if not os.path.exists(local_path):
           with open(local_path, "wb") as file:
             print(f"Downloading {blob.name} to {local_path}")
@@ -85,6 +87,18 @@ def load_files():
         if "contents" in blob_metadata:
           metadata[local_path] = { "contents": blob_metadata["contents"] }
     
+     # Cleanup: Delete local files that are not present in Azure blobs
+    local_files = set()
+    for directory in [LOCAL_PHOTO_DIR, LOCAL_VIDEO_DIR, LOCAL_SPLASH_DIR]:
+      for root, _, files in os.walk(directory):
+        for file in files:
+          local_files.add(os.path.join(root, file))
+
+    files_to_delete = local_files - downloaded_files
+    for file in files_to_delete:
+      print(f"Deleting stale file: {file}")
+      os.remove(file)  
+  
     # Save metadata locally to a JSON file
     with open(METADATA_FILE, "w") as meta_file:
         json.dump(metadata, meta_file, indent=4)

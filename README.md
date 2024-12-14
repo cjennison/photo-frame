@@ -158,6 +158,21 @@ After running the setup script:
 
 ---
 
+### 5. Configure the Web Interface
+
+1. Run the Web Interface setup script:
+
+   ```bash
+   sudo ./scripts/setup-webserver.sh
+   ```
+
+   This script installs required dependencies and sets up a web interface for the application as well as a service file for your device.
+
+2. Access the Web Interface:
+
+   - Open a web browser and navigate to `http://<your-pi-ip>:3000`.
+   - Replace `<your-pi-ip>` with the IP address of your Raspberry Pi.
+
 ## Updating the Application
 
 To update the application via git:

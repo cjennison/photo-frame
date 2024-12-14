@@ -35,9 +35,18 @@ else
     echo "Your Raspberry Pi IP address is: http://$PI_IP:3000"
 fi
 
+chmod +x scripts/setup-webserver.sh
+chmod +x scripts/create-autostart.sh
+
+# Webserver instructions
+echo "Installing web-server dependencies..."
+npm install --prefix ./webapp
+
+echo "To run the web-server, run the following command:"
+echo "sudo source scripts/setup-webserver.sh"
 
 # Ask the user if they want to run the program now
-echo "Setup complete. Would you like to start the server now? (y/n)"
+echo "Setup complete. Would you like to start the system now? (y/n)"
 read -r RUN_NOW
 
 if [ "$RUN_NOW" != "y" ]; then
