@@ -1,7 +1,6 @@
 #!/bin/bash
 
 SERVICE_NAME="photo-frame-webserver"
-WORKING_DIR="/home/$USERNAME/Applications/photo-frame/webapp"
 NODE_EXEC="/usr/bin/npm"
 SERVER_SCRIPT="index.js"
 
@@ -23,6 +22,8 @@ if ! id "$USERNAME" &>/dev/null; then
     echo "Error: User '$USERNAME' does not exist."
     exit 1
 fi
+
+WORKING_DIR="/home/$USERNAME/Applications/photo-frame/webapp"
 
 # Create log directory
 echo "Creating log directory at $LOG_DIR..."
