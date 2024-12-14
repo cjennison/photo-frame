@@ -27,17 +27,17 @@ jobs:
 
       - name: Prepare release archive
         run: |
-           echo "Preparing release archive..."
+          echo "Preparing release archive..."
           mkdir photo-frame
           shopt -s extglob
           cp -r !(photo-frame) photo-frame/
-          
+
           # Remove node_modules from the copy (if still present)
           if [ -d "photo-frame/webapp/client/node_modules" ]; then
             echo "Removing node_modules from the copied directory..."
             rm -rf photo-frame/webapp/client/node_modules
           fi
-          
+
           # Create tar archive
           echo "Creating tar archive..."
           tar -czvf photo-frame.tar.gz photo-frame/
