@@ -17,7 +17,7 @@ Pillow==9.3.0
 pycparser==2.22
 pygame==2.6.1
 python-dotenv==1.0.1
-python-xlib==1.17.0
+python-xlib==0.33
 requests==2.32.3
 six==1.17.0
 tinycss2==1.4.0
