@@ -62,4 +62,5 @@ jobs:
           files: |
             photo-frame.tar.gz
             photo-frame.zip
+            photo-frame/webapp-client-build
           token: ${{ secrets.GITHUB_TOKEN }}
