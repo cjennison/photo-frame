@@ -97,4 +97,5 @@ app.get("/", (req, res) => {
 // Start the server
 app.listen(PORT, "0.0.0.0", () => {
   console.log(`Server running at http://<YOUR_PI_IP>:${PORT}`);
+  console.log(`Frontend build path: ${FRONTEND_BUILD_PATH}`);
 });
