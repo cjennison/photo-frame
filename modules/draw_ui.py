@@ -5,6 +5,9 @@ import os
 import random
 from utils.loadsvgs import load_svg_as_surface
 from modules.photo_display import get_scaled_rect, scale_image
+from dotenv import load_dotenv
+
+load_dotenv()
 
 def draw_transparent_rect(screen, rect, color, alpha):
     # Create a new surface with the same dimensions as the rectangle
@@ -109,6 +112,9 @@ def preload_splash_image(splash_image_path, screen_size):
     return cropped_image
 
 def show_splash_overlay(screen, splash_image, start_time, duration=7, fade_duration=4):
+  text = os.getenv("SPLASH_MESSAGE")
+  if not text:
+    text = "EPIPhoto Frame"
   elapsed = time.time() - start_time
   alpha = 255
   if elapsed > duration + fade_duration:
@@ -123,10 +129,120 @@ def show_splash_overlay(screen, splash_image, start_time, duration=7, fade_durat
     screen.blit(temp_surface, (0, 0))
 
   font = pygame.font.Font(None, 72)
-  text_surface = font.render("I love you", True, (255, 255, 255))
+  text_surface = font.render(text, True, (255, 255, 255))
   text_surface.set_alpha(alpha)
   text_rect = text_surface.get_rect(center=(screen.get_width() // 2, screen.get_height() // 2))
   screen.blit(text_surface, text_rect)
 
   return True  # Splash is still active
   
+def show_first_run(screen, splash_image, start_time):
+    # Text content
+    text1 = "Welcome to the EPIPhoto Frame!"
+    text2 = "Tap the bottom of the screen to open the UI."
+    text3 = "You can change settings, skip photos, and more."
+    text4 = os.getenv("CUSTOM_MESSAGE")
+    if not text4:
+        text4 = "Enjoy your memories!"
+
+    # Font and colors
+    font = pygame.font.Font(None, 48)
+    text_color = (255, 255, 255)
+    
+    # Timing configuration (in seconds)
+    phase1_duration = 10.0   # total time for text1,2,3 sequence
+    fade_out_123 = 2.0      # fade out time for first three texts
+    phase3_duration = 10.0  # time to show text4 and image
+    fade_out_4 = 2.0        # fade out time for text4 and image
+
+    # Calculate elapsed time
+    elapsed = time.time() - start_time
+    
+    # Calculate phase boundaries
+    phase1_end = phase1_duration           # 5s
+    phase2_end = phase1_end + fade_out_123 # 6s
+    phase3_end = phase2_end + phase3_duration # 16s
+    phase4_end = phase3_end + fade_out_4   # 18s total
+    
+    # If we've exceeded the entire sequence time, return False
+    if elapsed > phase4_end:
+        return False
+
+    # Clear screen
+    screen.fill((0,0,0))
+
+    if elapsed < phase2_end:
+        # During phases 1 and 2, do not show splash 
+        splash_alpha = 0
+    elif elapsed < phase3_end:
+        # Phase 3: splash fully visible
+        splash_alpha = 255
+    else:
+        # Phase 4: fade out splash
+        fade_elapsed = elapsed - phase3_end
+        fade_fraction = fade_elapsed / fade_out_4
+        splash_alpha = max(0, 255 - int(255 * fade_fraction))
+    
+    # Draw the splash image with the calculated alpha
+    splash_surface = splash_image.copy()
+    splash_surface.set_alpha(splash_alpha)
+    screen.blit(splash_surface, (0, 0))
+
+    # Phase 1: Show texts 1,2,3 in sequence
+    # 0-1s: text1
+    # 1-2s: text1, text2
+    # 2-5s: text1, text2, text3
+    # Then 5-6s fade out these three texts
+    if elapsed < phase2_end:
+        # Determine alpha for texts 1-3 based on whether we are in fade-out period
+        if elapsed < phase1_end:
+            # Before 5s: texts fully opaque
+            alpha_123 = 255
+        else:
+            # In the fade-out window from 5s to 6s
+            fade_fraction = (elapsed - phase1_end) / fade_out_123
+            alpha_123 = max(0, 255 - int(255 * fade_fraction))
+
+        # Conditions to show each text
+        show_text1 = (elapsed >= 1.0)
+        show_text2 = (elapsed >= 5.0)
+        show_text3 = (elapsed >= 8.0)
+
+        y_pos = screen.get_height() // 2 - 50
+        line_spacing = 60
+
+        if show_text1:
+            surf1 = font.render(text1, True, text_color)
+            surf1.set_alpha(alpha_123)
+            rect1 = surf1.get_rect(center=(screen.get_width()//2, y_pos))
+            screen.blit(surf1, rect1)
+
+        if show_text2:
+            surf2 = font.render(text2, True, text_color)
+            surf2.set_alpha(alpha_123)
+            rect2 = surf2.get_rect(center=(screen.get_width()//2, y_pos + line_spacing))
+            screen.blit(surf2, rect2)
+
+        if show_text3:
+            surf3 = font.render(text3, True, text_color)
+            surf3.set_alpha(alpha_123)
+            rect3 = surf3.get_rect(center=(screen.get_width()//2, y_pos + 2*line_spacing))
+            screen.blit(surf3, rect3)
+
+    else:
+        # Phase 3 and 4: Show text4 centered
+        if elapsed < phase3_end:
+            # text4 fully visible
+            alpha_4 = 255
+        else:
+            # fading out text4
+            fade_elapsed = elapsed - phase3_end
+            fade_fraction = fade_elapsed / fade_out_4
+            alpha_4 = max(0, 255 - int(255 * fade_fraction))
+
+        surf4 = font.render(text4, True, text_color)
+        surf4.set_alpha(alpha_4)
+        rect4 = surf4.get_rect(center=(screen.get_width()//2, 50))
+        screen.blit(surf4, rect4)
+    
+    return True

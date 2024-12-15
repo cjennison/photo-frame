@@ -8,7 +8,7 @@ import cairosvg  # type: ignore
 from pygame.locals import * # type: ignore
 from modules.photo_display import display_photo
 from modules.video_display import play_video  
-from modules.draw_ui import draw_ui, show_splash_overlay, preload_splash_image
+from modules.draw_ui import draw_ui, show_splash_overlay, preload_splash_image, show_first_run
 from classes.uibutton import UIButton
 from classes.uicheckbox import UICheckbox
 from utils.loadsvgs import load_svg_as_surface
@@ -41,6 +41,7 @@ FULL_SCREEN = not "src" in os.getcwd()
 ENABLE_SLIDESHOW = True
 ENABLE_TRANSITION = True
 FILTER_KEYS = {}
+FIRST_RUN = True
 
 UI_VISIBLE = True
 UI_LAST_VISIBLE = time.time()
@@ -56,25 +57,31 @@ splash_image = None
 splash_active = True
 splash_start_time = time.time()
 
+# First run screen
+first_run_active = True
+first_run_start_time = time.time()
+
 ## ---------------- System ----------------
 
 def write_new_options():
   options = {
     "ENABLE_SLIDESHOW": ENABLE_SLIDESHOW,
     "ENABLE_TRANSITION": ENABLE_TRANSITION,
-    "FILTER_KEYS": FILTER_KEYS
+    "FILTER_KEYS": FILTER_KEYS,
+    "FIRST_RUN": FIRST_RUN
   }
   
   write_options_json(options)
 
 def get_options():
-  global ENABLE_SLIDESHOW, ENABLE_TRANSITION, FILTER_KEYS
+  global ENABLE_SLIDESHOW, ENABLE_TRANSITION, FILTER_KEYS, FIRST_RUN
   options = read_options_json()
   current_filter_keys = FILTER_KEYS
   incoming_filter_keys = {}
   if options:
     ENABLE_SLIDESHOW = options.get("ENABLE_SLIDESHOW", True)
     ENABLE_TRANSITION = options.get("ENABLE_TRANSITION", True)
+    FIRST_RUN = options.get("FIRST_RUN", True)
     incoming_filter_keys = options.get("FILTER_KEYS", {})
     
   # Merge incoming filter keys with current filter keys
@@ -112,10 +119,19 @@ checkboxes = []
 def display_splash(screen):  
   global splash_active, splash_start_time, splash_image
   return show_splash_overlay(screen, splash_image, splash_start_time)
+
+def display_first_run(screen):
+  global first_run_active, first_run_start_time
+  return show_first_run(screen, splash_image, first_run_start_time)
   
 def draw(screen):
-  global splash_active
-  if splash_active:
+  global splash_active, first_run_active, FIRST_RUN
+  if first_run_active:
+    first_run_active = display_first_run(screen)
+    if not first_run_active:
+      FIRST_RUN = False
+      write_new_options()
+  elif splash_active:
     splash_active = display_splash(screen)
   else:
     draw_ui(screen, buttons, checkboxes, {
@@ -133,7 +149,6 @@ def generate_content_order(images, videos):
 
 # Check if there exists any content in the content list that matches the filter keys
 def check_any_content_matches(metadata, content_list, filter_keys):
-  print(content_list, filter_keys)
   some_content_matches = False
   for _, media_path in content_list:
     if media_path in metadata and "contents" in metadata[media_path]:
@@ -155,7 +170,7 @@ def check_any_content_matches(metadata, content_list, filter_keys):
   return some_content_matches
 
 def main():
-  global config, loaded_icons, splash_image_path, splash_image, FILTER_KEYS
+  global config, loaded_icons, splash_image_path, splash_image, FILTER_KEYS, first_run_active
 
   # Check for X server availability
   wait_for_server_available()
@@ -199,6 +214,8 @@ def main():
   
   # Set options
   get_options()
+  if not FIRST_RUN:
+    first_run_active = False
   
   ###### Run the main loop ######
   
