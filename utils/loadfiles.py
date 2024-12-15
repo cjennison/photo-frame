@@ -3,9 +3,6 @@ import json
 import tkinter as tk
 from tkinter import simpledialog
 from azure.storage.blob import BlobServiceClient  # type: ignore # Azure Storage SDK
-from dotenv import load_dotenv
-
-load_dotenv()
 
 def prompt_for_env_variable(env_var_name, prompt_text):
     import tkinter as tk

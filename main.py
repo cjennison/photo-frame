@@ -15,6 +15,9 @@ from utils.loadsvgs import load_svg_as_surface
 from utils.loadfiles import get_unique_content_keys, load_files, load_metadata, write_options_json, read_options_json
 from utils.checkdeps import wait_for_server_available
 
+from dotenv import load_dotenv
+load_dotenv(verbose=True, override=True)
+
 SCREEN_SIZES = {
   "7inch": (800, 480),
   "10inch": (1280, 800),
