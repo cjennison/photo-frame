@@ -175,7 +175,7 @@ After running the setup script:
 
 ## Updating the Application
 
-> The application updates itself automatically when it restarts.
+> The application updates itself automatically when it restarts if you set DISABLE_AUTOUPDATE to `false`.
 
 To update the application via git:
 
