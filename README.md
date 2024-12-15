@@ -158,7 +158,7 @@ After running the setup script:
 
 ---
 
-### 5. Configure the Web Interface
+### 5. Configure the Web Interface (optional)
 
 1. Run the Web Interface setup script:
 
@@ -174,6 +174,8 @@ After running the setup script:
    - Replace `<your-pi-ip>` with the IP address of your Raspberry Pi.
 
 ## Updating the Application
+
+> The application updates itself automatically when it restarts.
 
 To update the application via git:
 
@@ -213,6 +215,10 @@ To update the application via Release:
    ```bash
    ./scripts/setup.sh
    ```
+   You may need to configure a new `run.sh` script, as the release may have a different directory structure. `configure-run.sh` can be used to generate a new `run.sh` script.
+   ```bash
+   ./scripts/configure-run.sh
+   ```
 4. Restart the service:
 
    ```bash
@@ -236,13 +242,29 @@ To update the application via Release:
 - **Requirements**: Ensure `requirements.txt` lists all Python dependencies.
 - **Getting Updates**: It is recommended to add a github token to your `.env` file to avoid rate limiting.  
   Generate a `read only` token from your github account for **Public Repositories** and add it to the `.env` file. [Create Github Token](https://github.com/settings/personal-access-tokens/new)
+
   > Unauthorized requests will be limited.
 
+- **Custom Messaging**: Customize the messages displayed on the screen by editing the `.env` file.
+
 ---
+
+### Hardware
+
+The project was designed and built on the following technology:
+
+- Raspberry Pi 5
+- Official 7" Touchscreen Display
 
 ## Troubleshooting
 
 1. **Application Not Starting**:
+   Likely causes:
+
+   - `.env` file is missing or incorrect.
+   - Service is not running.
+
+   ***
 
    - Check logs:
      ```bash
@@ -254,7 +276,26 @@ To update the application via Release:
      ```
 
 2. **Media Not Loading**:
+
    - Ensure Azure Connection string is valid and has the correct permissions.
    - Verify network connectivity.
+
+3. **Web Interface Not Loading**:
+   Likely causes:
+
+   - The service is not running.
+   - Port 3000 is blocked.
+   - `.env` file is missing or incorrect.
+
+   ***
+
+   - Check the status of the service:
+     ```bash
+     sudo systemctl status photo-frame-webserver
+     ```
+   - Check logs:
+     ```bash
+     sudo journalctl -u photo-frame-webserver
+     ```
 
 ---

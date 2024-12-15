@@ -59,9 +59,20 @@ cd $PROJECT_DIR
 # Activate the virtual environment
 source venv/bin/activate
 
-# Check for updates
-source scripts/check-updates.sh
+# If the .env file exists, load it
+if [ -f .env ]; then
+  source .env
+fi
 
+# Get the value for DISABLE_AUTOUPDATE
+DISABLE_AUTOUPDATE=$(grep DISABLE_AUTOUPDATE .env | cut -d '=' -f2)
+
+# Check if the DISABLE_AUTOUPDATE variable is set to true
+if [ "$DISABLE_AUTOUPDATE" = "false" ]; then
+  # Check for updates
+  source scripts/check-updates.sh
+fi
+  
 # Force reinstall cairosvg
 # Note: This works. I don't know why. But it works.
 pip install cairosvg
